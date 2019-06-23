@@ -242,7 +242,6 @@ async def cmd_read(bot, msg):
             request = urllib.request.Request(url, headers={"User-Agent": "Sputnik is a good bot, pls let me read this"})
             with urllib.request.urlopen(request) as embed:
                 meme = io.BytesIO(embed.read())
-                pytesseract.pytesseract.tesseract_cmd = r'C:/Program Files (x86)/Tesseract-OCR/tesseract'
                 transcript = pytesseract.image_to_string(Image.open(meme), lang="eng+spa+fra+fin")
                 
                 if transcript: content = "I took a look at it, and here's my best guess for what it says: \n```%s```" % transcript.replace('|','I')
