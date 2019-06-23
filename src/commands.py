@@ -244,8 +244,13 @@ async def cmd_read(bot, msg):
                 meme = io.BytesIO(embed.read())
                 transcript = pytesseract.image_to_string(Image.open(meme), lang="eng+spa+fra+fin")
                 
-                if transcript: content = "I took a look at it, and here's my best guess for what it says: \n```%s```" % transcript.replace('|','I')
-                else: content = "I took a look at it, but I couldn't read any text there, sorry."
+                if transcript: 
+                    if len(transcript)>=1950:
+                        content = "I'm sorry, I found some text there but it looks like it goes over Discord's message cap. \nHere's the first part at least: \n```%s```" % transcript[:1750].replace('|','I')
+                    else:
+                        content = "I took a look at it, and here's my best guess for what it says: \n```%s```" % transcript.replace('|','I')
+                else: 
+                    content = "I took a look at it, but I couldn't read any text there, sorry."
             return Reply(content=content)
     
     return Reply(content="Sorry, I didn't find any images that I could read.")
