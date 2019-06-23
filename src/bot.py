@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import logging
 import asyncio
 import sys
@@ -187,6 +188,8 @@ def clean_data():
             os.remove(os.path.join("data/", file))
 
 if __name__ == "__main__":
+
+    os.chdir(os.path.dirname(os.path.abspath(__file__))+"/..")
 
     config = Config(test=("--test" in sys.argv))
 
