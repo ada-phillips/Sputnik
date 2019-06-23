@@ -157,8 +157,9 @@ class Bot(discord.Client):
         await self.wait_until_ready()
         for client in self.voice_clients:
             await client.disconnect()
-        log.error("{} - {}".format(sys.executable, ['python3'] + sys.argv))
-        os.execv(sys.executable, ['python3'] + sys.argv)
+        command = "python" if " " in sys.executable else sys.executable
+        log.error("{} - {}".format(sys.executable, [command] + sys.argv))
+        os.execv(sys.executable, [command] + sys.argv)
 
 #   Set logging up across all modules
 def logging_setup(level="DEBUG"):
