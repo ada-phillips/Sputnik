@@ -1,0 +1,5 @@
+.vscode
+*.mp3
+*.webm
+__pycache__/
+config/global_test.ini

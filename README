@@ -1,0 +1,5 @@
+This is Sputnik, a dicord bot.
+
+It's primary functions are playing music via youtube-dl, rolling dice, and transcribing images to aid in accessibility. 
+
+Hopefully I'll add to this README in the future, and expand on some of the design rationale behind the bot. 

@@ -1,0 +1,11 @@
+discord.py
+pytesseract
+pip
+youtube_dl
+colorlog
+cffi
+ffmpeg
+aiohttp
+pillow
+py-trello
+PyNaCl
