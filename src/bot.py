@@ -153,10 +153,12 @@ class Bot(discord.Client):
         importlib.reload(commands)
 
     async def restartBot(self):
+        log.warning("Restarting...")
         await self.wait_until_ready()
         for client in self.voice_clients:
             await client.disconnect()
-        os.execv(sys.executable, ['Python'] + sys.argv)
+        log.error("{} - {}".format(sys.executable, ['python3'] + sys.argv))
+        os.execv(sys.executable, ['python3'] + sys.argv)
 
 #   Set logging up across all modules
 def logging_setup(level="DEBUG"):
