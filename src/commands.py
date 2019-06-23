@@ -120,10 +120,12 @@ async def cmd_update(bot, msg):
 
     Pulls the latest updates from the Sputnik Github repository
     """
-    subprocess.check_output(["git","fetch"])
-    subprocess.check_output(["git","pull"])
 
-    return Reply(content="I've pulled the most recent updates.")
+    content = "Attempting to pull the most recent updates...\n```{}```"
+
+    pull = subprocess.check_output(["git","pull"]).decode("utf-8")+" "
+
+    return Reply(content=content.format(pull))
 
 @owner_only
 @available_everywhere
@@ -171,6 +173,55 @@ async def cmd_reboot(bot, message):
     """
     await message.channel.send(content="Restarting!")
     await bot.restartBot()
+
+@owner_only
+@available_everywhere
+async def cmd_except(bot, message):
+    """
+    Usage:
+        {command_prefix}except
+
+    Raises an immediate exception. Useful for debugging. 
+    """
+    raise Exception()
+
+@owner_only
+@available_everywhere
+async def cmd_logs(bot, message):
+    """
+    Usage:
+        {command_prefix}logs [current|old]
+
+    Displays as many log lines as will fit into a single message, or, if specified, uploads either the current or previous log file. 
+    """
+    try:
+        specify = message.content.split(" ", 1)[1]
+
+        content = "Here's the log file you requested:"
+        
+        if specify=="current":
+            logFile = discord.File(open("logs/sputnik.log", 'rb'))
+        elif specify == "old":
+            logFile = discord.File(open("logs/sputnik_old.log", 'rb'))
+
+        return Reply(content=content, file=logFile)
+
+    except IndexError:
+        content = "Here are the last %d lines from the log:\n```%s```"
+        lineCount = 0
+        with open("logs/sputnik.log", "r") as f:
+            lines = f.readlines()
+            lines.reverse()
+            logs=""
+            for line in lines:
+                if len(line)+len(content)+len(logs)<2000:
+                    logs=line+logs
+                    lineCount+=1
+                else:
+                    break
+        
+        content = content % (lineCount, logs)
+        return Reply(content=content)
 
 @owner_only
 async def cmd_config(bot, message):

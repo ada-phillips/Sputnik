@@ -5,6 +5,7 @@ import re
 import io
 import os
 import importlib
+import traceback
 
 from functools import wraps
 from textwrap import dedent
@@ -99,6 +100,9 @@ class Bot(discord.Client):
 
     async def on_guild_join(self, guild):
         self.config.server_setup([guild,])
+    
+    async def on_error(event, *args, **kwargs):
+        log.error(traceback.format_exception(*sys.exc_info()))
 
     async def on_message(self, message):
         await self.wait_until_ready()
@@ -139,9 +143,12 @@ class Bot(discord.Client):
                 )
         except NotImplementedError as e:
             await message.channel.send(content="I'm sorry, that command hasn't been written yet :sob:") 
-            #await message.channel.send(content="I'm sorry, something went wrong and I couldn't run that command properly. :sob:")
+        except Exception as e:
+            await message.channel.send(content="I'm sorry, something went wrong and I couldn't run that command properly. :sob:")
+            raise e
         
     def reloadCommandSet(self):
+        log.warning("Reloading command set...")
         importlib.reload(commands)
 
     async def restartBot(self):
