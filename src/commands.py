@@ -25,9 +25,9 @@ import player
 message_builder = {'content':None, 'file':None, 'embed': None}
 
 class Reply:
-    def __init__(self, content=None, file=None, embed=None):
+    def __init__(self, content=None, files=None, embed=None):
         self.content=content
-        self.file=file
+        self.files=files
         self.embed=embed
 
 class IncorrectUsageError(ValueError):
@@ -222,7 +222,7 @@ async def cmd_logs(bot, message):
         elif specify == "old":
             logFile = discord.File(open("logs/sputnik_old.log", 'rb'))
 
-        return Reply(content=content, file=logFile)
+        return Reply(content=content, files=[logFile,])
 
     except IndexError:
         content = "Here are the last %d lines from the log:\n```\u200b%s```"
@@ -325,6 +325,46 @@ async def cmd_read(bot, msg):
             return Reply(content=content)
     
     return Reply(content="Sorry, I didn't find any images that I could read.")
+
+@available_everywhere
+async def cmd_spoiler(bot, message):
+    """
+    Usage:
+        {command_prefix}spoiler [message]
+        Message must contain images or embeded images. 
+
+    Re-uploads all images in the invoking message as Spoilers, adding any included text as a description underneath.
+    """
+
+    images = [
+        discord.File(
+            io.BytesIO(urllib.request.urlopen(
+                urllib.request.Request(attachment.url, headers={"User-Agent": "Sputnik is a good bot, pls let me read this"})
+            ).read()), 
+            filename=attachment.filename, 
+            spoiler=True
+        )
+        for attachment in message.attachments
+    ]
+    
+    if len(images)==0:
+        raise IncorrectUsageError
+    
+    image_message = message.content.split(" ", 1)[1] if len(message.content.split(" ", 1))>1 else discord.Embed.Empty
+
+
+    embed = discord.Embed(title=discord.Embed.Empty, description=image_message)
+    embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
+
+    try:
+        await message.delete()
+        embed.set_footer(text="Original message deleted.")
+    except (discord.Forbidden):
+        embed.set_footer(text="Please delete the original message.")
+
+    return Reply(embed=embed, files=images)
+    
+
 
 async def cmd_help(bot, message):
     """
@@ -503,7 +543,7 @@ async def cmd_hug(bot, message):
     else:
         content = ":heart: %s :heart:" % message.author.mention
 
-    return Reply(content=content, file=hug)
+    return Reply(content=content, files=[hug,])
 
 @owner_only
 @available_everywhere
@@ -535,7 +575,7 @@ async def cmd_guillotine(bot, message):
     else:
         content = ":skull_crossbones: %s :skull_crossbones:" % message.author.mention
 
-    return Reply(content=content, file=guillotine)
+    return Reply(content=content, files=[guillotine,])
 
 # Music Commands
 #################

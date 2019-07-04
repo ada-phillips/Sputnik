@@ -136,7 +136,7 @@ class Bot(discord.Client):
             if not isinstance(replies, list):
                 replies = [replies,]
             for reply in replies:
-                await message.channel.send(content=reply.content, file=reply.file, embed=reply.embed)
+                await message.channel.send(content=reply.content, files=reply.files, embed=reply.embed)
         except commands.IncorrectUsageError as e:
             log.error(repr(e))
             await message.channel.send(
