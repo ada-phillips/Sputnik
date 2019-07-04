@@ -61,7 +61,12 @@ def mention_invoker(func):
     @wraps(func)
     async def wrapper(bot, message, *args, **kwargs):
         reply = await func(bot, message, *args, **kwargs)
-        reply.content = "{}, {}".format(message.author.mention, reply.content)
+        if isinstance(reply, list):
+            first = reply.pop(0)
+            first.content = "{}, {}".format(message.author.mention, first.content)
+            reply.insert(0, first)
+        else:
+            reply.content = "{}, {}".format(message.author.mention, reply.content)
         return reply
 
     return wrapper
@@ -309,12 +314,14 @@ async def cmd_read(bot, msg):
                 transcript = pytesseract.image_to_string(Image.open(meme), lang="eng+spa+fra+fin")
                 
                 if transcript: 
-                    if len(transcript)>=1950:
-                        content = "I'm sorry, I found some text there but it looks like it goes over Discord's message cap. \nHere's the first part at least: \n```\u200b%s```" % transcript[:1750].replace('|','I')
-                    else:
-                        content = "I took a look at it, and here's my best guess for what it says: \n```%s```" % transcript.replace('|','I')
+                    transcript = transcript.replace('|','I')
+                    replies = [Reply(content="I took a look at it, and here's my best guess for what it says:"),]
+                    while(len(transcript)>0):
+                        chunk, transcript = transcript[:1900], transcript[1900:]
+                        replies.append(Reply(content="```"+chunk+"```"))
+                    return replies
                 else: 
-                    content = "I took a look at it, but I couldn't read any text there, sorry."
+                    return Reply(content = "I took a look at it, but I couldn't read any text there, sorry.")
             return Reply(content=content)
     
     return Reply(content="Sorry, I didn't find any images that I could read.")

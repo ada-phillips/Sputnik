@@ -131,9 +131,12 @@ class Bot(discord.Client):
 
         try:
             async with message.channel.typing():
-                reply = await handler(self, message)
+                replies = await handler(self, message)
             
-            await message.channel.send(content=reply.content, file=reply.file, embed=reply.embed)
+            if not isinstance(replies, list):
+                replies = [replies,]
+            for reply in replies:
+                await message.channel.send(content=reply.content, file=reply.file, embed=reply.embed)
         except commands.IncorrectUsageError as e:
             log.error(repr(e))
             await message.channel.send(
