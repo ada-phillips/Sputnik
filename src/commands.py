@@ -187,6 +187,19 @@ async def cmd_except(bot, message):
 
 @owner_only
 @available_everywhere
+async def cmd_echo(bot, message):
+    """
+    Usage:
+        {command_prefix}echo message
+
+    Echoes a given message.
+    """
+    echo = message.content.split(" ", 1)[1]
+
+    return Reply(content=echo)
+
+@owner_only
+@available_everywhere
 async def cmd_logs(bot, message):
     """
     Usage:
