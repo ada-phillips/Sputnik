@@ -334,6 +334,7 @@ async def cmd_spoiler(bot, message):
         Message must contain images or embeded images. 
 
     Re-uploads all images in the invoking message as Spoilers, adding any included text as a description underneath.
+    Will delete the invoking message if I have the correct permissions. 
     """
 
     images = [
