@@ -312,7 +312,7 @@ async def cmd_read(bot, msg):
                     if len(transcript)>=1950:
                         content = "I'm sorry, I found some text there but it looks like it goes over Discord's message cap. \nHere's the first part at least: \n```\u200b%s```" % transcript[:1750].replace('|','I')
                     else:
-                        content = "I took a look at it, and here's my best guess for what it says: \n```\u200b%s```" % transcript.replace('|','I')
+                        content = "I took a look at it, and here's my best guess for what it says: \n```%s```" % transcript.replace('|','I')
                 else: 
                     content = "I took a look at it, but I couldn't read any text there, sorry."
             return Reply(content=content)
@@ -334,7 +334,7 @@ async def cmd_help(bot, message):
         cmd = getattr(sys.modules[__name__], 'cmd_' + command, None)
         if cmd:
             return Reply(
-                content= "```\u200b\n{}```"
+                content= "```\n{}```"
                     .format(dedent(cmd.__doc__))
                     .format(command_prefix=bot.config.get((message.guild.id if message.guild else "default"), "Server", "CommandPrefix"))
             )
@@ -342,7 +342,7 @@ async def cmd_help(bot, message):
             return Reply(content="No such command")
 
     except IndexError:
-        helpmsg = "**Available commands**\n```\u200b"
+        helpmsg = "**Available commands**\n```"
         commands = []
 
         for att in dir(sys.modules[__name__]):
