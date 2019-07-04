@@ -121,7 +121,7 @@ async def cmd_update(bot, msg):
     Pulls the latest updates from the Sputnik Github repository
     """
 
-    content = "Attempting to pull the most recent updates...\n```{}```"
+    content = "Attempting to pull the most recent updates...\n```\u200b{}```"
 
     pull = subprocess.check_output(["git","pull"]).decode("utf-8")+" "
 
@@ -155,11 +155,11 @@ async def cmd_id(bot, message):
     Tells the user their id or the id of another user.
     """
     if not message.mentions:
-        return Reply(content='your id is `%s`' % message.author.id)
+        return Reply(content='your id is `\u200b%s`' % message.author.id)
     else:
         info = ''
         for user in message.mentions:
-            info+="%s's id is `%s`\n" % (user.name, user.id)
+            info+="%s's id is `\u200b%s`\n" % (user.name, user.id)
         return Reply(content=info)
 
 @owner_only
@@ -207,7 +207,7 @@ async def cmd_logs(bot, message):
         return Reply(content=content, file=logFile)
 
     except IndexError:
-        content = "Here are the last %d lines from the log:\n```%s```"
+        content = "Here are the last %d lines from the log:\n```\u200b%s```"
         lineCount = 0
         with open("logs/sputnik.log", "r") as f:
             lines = f.readlines()
@@ -244,7 +244,7 @@ async def cmd_config(bot, message):
         try:
             key, value = remainder.split(" ", 1)
 
-            content = "Changing {} from `{}` to `{}`".format(key, bot.config.get_raw(message.guild.id, "Server", key), value)
+            content = "Changing {} from `{}\u200b` to `{}\u200b`".format(key, bot.config.get_raw(message.guild.id, "Server", key), value)
 
             bot.config.put(message.guild.id, "Server", key, value)
 
@@ -254,7 +254,7 @@ async def cmd_config(bot, message):
         except ValueError:
             key = remainder
 
-            return Reply(content="Option {} set to `{}`".format(key, bot.config.get_raw(message.guild.id, "Server", key)))
+            return Reply(content="Option {} set to `{}\u200b`".format(key, bot.config.get_raw(message.guild.id, "Server", key)))
     
     # except no arguments, give list of configurable options. 
     except ValueError:
@@ -297,9 +297,9 @@ async def cmd_read(bot, msg):
                 
                 if transcript: 
                     if len(transcript)>=1950:
-                        content = "I'm sorry, I found some text there but it looks like it goes over Discord's message cap. \nHere's the first part at least: \n```%s```" % transcript[:1750].replace('|','I')
+                        content = "I'm sorry, I found some text there but it looks like it goes over Discord's message cap. \nHere's the first part at least: \n```\u200b%s```" % transcript[:1750].replace('|','I')
                     else:
-                        content = "I took a look at it, and here's my best guess for what it says: \n```%s```" % transcript.replace('|','I')
+                        content = "I took a look at it, and here's my best guess for what it says: \n```\u200b%s```" % transcript.replace('|','I')
                 else: 
                     content = "I took a look at it, but I couldn't read any text there, sorry."
             return Reply(content=content)
@@ -321,7 +321,7 @@ async def cmd_help(bot, message):
         cmd = getattr(sys.modules[__name__], 'cmd_' + command, None)
         if cmd:
             return Reply(
-                content= "```\n{}```"
+                content= "```\u200b\n{}```"
                     .format(dedent(cmd.__doc__))
                     .format(command_prefix=bot.config.get((message.guild.id if message.guild else "default"), "Server", "CommandPrefix"))
             )
@@ -329,7 +329,7 @@ async def cmd_help(bot, message):
             return Reply(content="No such command")
 
     except IndexError:
-        helpmsg = "**Available commands**\n```"
+        helpmsg = "**Available commands**\n```\u200b"
         commands = []
 
         for att in dir(sys.modules[__name__]):
