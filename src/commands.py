@@ -782,10 +782,13 @@ async def cmd_shuffle(bot, message):
             time_elapsed = bot.players[message.guild.id].loop.time() - info['start_time']
         
         embed.add_field(
-            name="Currently {}: {} [{:02d}:{:02d}/{:02d}:{:02d}]".format(
-                "Paused" if message.guild.voice_client.is_paused() else "Playing", info['title'], 
-                int(time_elapsed/60), int(time_elapsed%60), int(info['duration']/60), int(info['duration']%60)), 
-            value="Added by {}\n{}\n\u200b".format(info['message'].author.display_name, info['webpage_url']), 
+            name="Currently {}: {}".format(
+                "Paused" if message.guild.voice_client.is_paused() else "Playing", info['title']), 
+            value="[{:02d}:{:02d}/{:02d}:{:02d}]\nAdded by {}\n{}\n\u200b".format(
+                int(time_elapsed/60), int(time_elapsed%60), int(info['duration']/60), int(info['duration']%60),
+                info['message'].author.display_name, 
+                info['webpage_url']
+                ), 
             inline=False
         )
 
@@ -794,8 +797,11 @@ async def cmd_shuffle(bot, message):
         for index in range(len(player.playlist)):
             info = player.playlist[index]
             embed.add_field(
-                name="{}: {} [{:02d}:{:02d}]".format(index+1,info['title'], int(info['duration']/60), int(info['duration']%60)),
-                value="Added by {}\n{}\n\u200b".format(info['message'].author.display_name, info['webpage_url']), 
+                name="{}: {}".format(index+1,info['title']),
+                value="[{:02d}:{:02d}]\nAdded by {}\n{}\n\u200b".format(
+                    int(info['duration']/60), int(info['duration']%60),
+                    info['message'].author.display_name, info['webpage_url']
+                    ), 
                 inline=False
             )
     
@@ -822,10 +828,13 @@ async def cmd_queue(bot, message):
             time_elapsed = bot.players[message.guild.id].loop.time() - info['start_time']
         
         embed.add_field(
-            name="Currently {}: {} [{:02d}:{:02d}/{:02d}:{:02d}]".format(
-                "Paused" if message.guild.voice_client.is_paused() else "Playing", info['title'], 
-                int(time_elapsed/60), int(time_elapsed%60), int(info['duration']/60), int(info['duration']%60)), 
-            value="Added by {}\n{}\n\u200b".format(info['message'].author.display_name, info['webpage_url']), 
+            name="Currently {}: {}".format(
+                "Paused" if message.guild.voice_client.is_paused() else "Playing", info['title']), 
+            value="[{:02d}:{:02d}/{:02d}:{:02d}]\nAdded by {}\n{}\n\u200b".format(
+                int(time_elapsed/60), int(time_elapsed%60), int(info['duration']/60), int(info['duration']%60),
+                info['message'].author.display_name, 
+                info['webpage_url']
+                ), 
             inline=False
         )
 
@@ -834,8 +843,11 @@ async def cmd_queue(bot, message):
         for index in range(len(player.playlist)):
             info = player.playlist[index]
             embed.add_field(
-                name="{}: {} [{:02d}:{:02d}]".format(index+1,info['title'], int(info['duration']/60), int(info['duration']%60)),
-                value="Added by {}\n{}\n\u200b".format(info['message'].author.display_name, info['webpage_url']), 
+                name="{}: {}".format(index+1,info['title']),
+                value="[{:02d}:{:02d}]\nAdded by {}\n{}\n\u200b".format(
+                    int(info['duration']/60), int(info['duration']%60),
+                    info['message'].author.display_name, info['webpage_url']
+                    ), 
                 inline=False
             )
     
