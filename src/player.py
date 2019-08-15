@@ -5,6 +5,7 @@ import logging
 import os
 import asyncio
 import functools
+import random
 
 log = logging.getLogger(__name__)
 
@@ -116,6 +117,9 @@ class Player():
 
     def apply_volume(self, source):
         return discord.PCMVolumeTransformer(source, volume=self.volume)
+
+    def shuffle(self):
+        random.shuffle(self.playlist)
 
     def skip(self, author, index=None):
         if (index is None):

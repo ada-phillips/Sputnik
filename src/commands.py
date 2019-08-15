@@ -493,7 +493,7 @@ async def cmd_suggest(bot, message):
     except IndexError:
         description=None
     
-    bot.suggestions.add_suggestion(title, description, message.author.display_name)
+    bot.suggestions.add_suggestion(title, description[:1000], message.author.display_name)
 
     return Reply(content="Thanks for the suggestion!")
 
@@ -722,8 +722,6 @@ async def cmd_volume(bot, message):
     except IndexError:
         return Reply(content="Volume set to %i%%" % (player.volume*100))
 
-# TODO skip from father down the queue
-# TODO skip progress messages, x skips out of y needed
 @needs_voice
 @needs_listening
 async def cmd_skip(bot, message):
@@ -756,6 +754,53 @@ async def cmd_skip(bot, message):
     else:
         return Reply(content="Nothing playing!")
 
+@needs_voice
+@needs_listening
+async def cmd_shuffle(bot, message):
+    """
+    Usage:
+        {command_prefix}shuffle
+
+    Shuffles the song queue.
+    """
+    player = bot.players[message.guild.id]
+
+    if not (player.playlist):
+        return Reply(content="Nothing queued!")
+
+    player.shuffle()
+
+    embed = discord.Embed(title="**Playlist Shuffled!**", description="Here's the new queue:\n\n")
+    embed.set_footer(text="Add songs with the {}play command!".format(bot.config.get((message.guild.id if message.guild else "default"), "Server", "CommandPrefix")))
+
+    if player.now_playing:
+        info = player.now_playing
+
+        if message.guild.voice_client.is_paused():
+            time_elapsed = info['pause_time'] - info['start_time']
+        else:
+            time_elapsed = bot.players[message.guild.id].loop.time() - info['start_time']
+        
+        embed.add_field(
+            name="Currently {}: {} [{:02d}:{:02d}/{:02d}:{:02d}]".format(
+                "Paused" if message.guild.voice_client.is_paused() else "Playing", info['title'], 
+                int(time_elapsed/60), int(time_elapsed%60), int(info['duration']/60), int(info['duration']%60)), 
+            value="Added by {}\n{}\n\u200b".format(info['message'].author.display_name, info['webpage_url']), 
+            inline=False
+        )
+
+
+    if player.playlist:
+        for index in range(len(player.playlist)):
+            info = player.playlist[index]
+            embed.add_field(
+                name="{}: {} [{:02d}:{:02d}]".format(index+1,info['title'], int(info['duration']/60), int(info['duration']%60)),
+                value="Added by {}\n{}\n\u200b".format(info['message'].author.display_name, info['webpage_url']), 
+                inline=False
+            )
+    
+    return Reply(embed=embed)
+
 async def cmd_queue(bot, message):
     """
     Usage:
@@ -765,8 +810,7 @@ async def cmd_queue(bot, message):
     """
     player = bot.players[message.guild.id]
 
-
-    embed = discord.Embed(title="**Playlist**", description="Here's what's been queued up so far\n\n")
+    embed = discord.Embed(title="**Playlist**", description= "Here's what's been queued up so far\n\n" if (player.now_playing or player.playlist) else "Nothing in the queue!")
     embed.set_footer(text="Add songs with the {}play command!".format(bot.config.get((message.guild.id if message.guild else "default"), "Server", "CommandPrefix")))
 
     if player.now_playing:

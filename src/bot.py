@@ -55,13 +55,17 @@ class Bot(discord.Client):
 
     async def on_ready(self):
         log.info("Connected to Discord. Loading Server Information...")
-        self.suggestions = SuggestionList(
-            self.config.get(0, "Trello", "APIKey"), 
-            self.config.get(0, "Trello", "APIToken"), 
-            None, 
-            None,
-            self.config.get(0, "Trello", "NewSuggestionList")
-        )
+        try:
+            self.suggestions = SuggestionList(
+                self.config.get(0, "Trello", "APIKey"), 
+                self.config.get(0, "Trello", "APIToken"), 
+                None, 
+                None,
+                self.config.get(0, "Trello", "NewSuggestionList")
+            )
+        except:
+            log.error("Unable to connect to Trello. Suggestions unavailable.")
+            self.suggestions = None
         self.config.server_setup(self.guilds)
         self.validate_channels()
         await self.join_channels()
