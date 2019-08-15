@@ -544,7 +544,11 @@ async def cmd_hug(bot, message):
     else:
         content = ":heart: %s :heart:" % message.author.mention
 
-    return Reply(content=content, files=[hug,])
+    
+    embed = discord.Embed(title=discord.Embed.Empty, description=content)
+    embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
+
+    return Reply(embed=embed, files=[hug,])
 
 @owner_only
 @available_everywhere
@@ -575,8 +579,11 @@ async def cmd_guillotine(bot, message):
 
     else:
         content = ":skull_crossbones: %s :skull_crossbones:" % message.author.mention
+    
+    embed = discord.Embed(title=discord.Embed.Empty, description=content)
+    embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
 
-    return Reply(content=content, files=[guillotine,])
+    return Reply(embed=embed, files=[guillotine,])
 
 # Music Commands
 #################
