@@ -491,7 +491,7 @@ async def cmd_suggest(bot, message):
     try: 
         description = suggestion.split("\n", 1)[1]
     except IndexError:
-        description=None
+        description=""
     
     bot.suggestions.add_suggestion(title, description[:1000], message.author.display_name)
 
