@@ -318,7 +318,7 @@ async def cmd_read(bot, msg):
                     replies = [Reply(content="I took a look at it, and here's my best guess for what it says:"),]
                     while(len(transcript)>0):
                         chunk, transcript = transcript[:1900], transcript[1900:]
-                        replies.append(Reply(content="```"+chunk+"```"))
+                        replies.append(Reply(content="```\n"+chunk+"```"))
                     return replies
                 else: 
                     return Reply(content = "I took a look at it, but I couldn't read any text there, sorry.")
