@@ -97,7 +97,9 @@ class Bot(discord.Client):
     
     async def join_channels(self):
         for guild in self.guilds:
-            if not guild.voice_client and self.config.get(guild.id,"Server","AutoJoinChannel"):
+            if self.config.get(guild.id,"Server","AutoJoinChannel"):
+                if guild.voice_client:
+                    await guild.voice_client.disconnect()
                 await guild.get_channel(int(self.config.get(guild.id,"Server","AutoJoinChannel"))).connect()
                 self.players[guild.id] = player.Player(self, guild.id)
             else:   #nothing configd
@@ -130,7 +132,7 @@ class Bot(discord.Client):
         if isinstance(message.channel, discord.DMChannel) and not handler.is_available_everywhere:
             return
         
-        if self.config.get((message.guild.id if message.guild else "default"),"Server","BindToChannels") and str(message.channel.id) not in self.config.get((message.guild.id if message.guild else "default"),"Server","BindToChannels") and not handler.is_available_everywhere:
+        if self.config.get((message.guild.id if message.guild else "default"),"Server","BindToChannels") and str(message.channel.id) not in self.config.get((message.guild.id if message.guild else "default"),"Server","BindToChannels") and not hasattr(handler, "is_available_everywhere"):
             return
 
         try:

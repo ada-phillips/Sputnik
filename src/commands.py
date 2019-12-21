@@ -42,13 +42,40 @@ def owner_only(func):
     
     @wraps(func)
     async def wrapper(bot, message, *args, **kwargs):
-        # Only allow the owner to use these commands
+        appInfo = await bot.application_info()
 
-        if str(message.author.id) == bot.config.get(0, "Permissions","OwnerID"):
-            # noinspection PyCallingNonCallable
+        if message.author == (appInfo.team.owner, appInfo.owner)[appInfo.team is None]:
             return await func(bot, message, *args, **kwargs)
         else:
             return Reply(content="Only the owner can use this command")
+
+    return wrapper
+
+def dev_only(func):
+    func.__doc__ +="Only usable by the bot Developers.\n    "
+    
+    @wraps(func)
+    async def wrapper(bot, message, *args, **kwargs):
+        appInfo = await bot.application_info()
+
+        if  message.author == appInfo.owner or message.author in appInfo.team.members:
+            return await func(bot, message, *args, **kwargs)
+        else:
+            return Reply(content="Only members of the dev team can use this command")
+
+    return wrapper
+
+def admin_only(func):
+    func.__doc__ +="Only usable by server administrators.\n    "
+    
+    @wraps(func)
+    async def wrapper(bot, message, *args, **kwargs):
+        appInfo = await bot.application_info()
+
+        if message.channel.permissions_for(message.author).administrator or message.author == appInfo.owner or message.author in appInfo.team.members:
+            return await func(bot, message, *args, **kwargs)
+        else:
+            return Reply(content="Only server admins can use this command")
 
     return wrapper
 
@@ -132,7 +159,7 @@ async def cmd_update(bot, msg):
 
     return Reply(content=content.format(pull))
 
-@owner_only
+@admin_only
 @available_everywhere
 async def cmd_introduce(bot, message):
     """
@@ -167,7 +194,7 @@ async def cmd_id(bot, message):
             info+="%s's id is `\u200b%s`\n" % (user.name, user.id)
         return Reply(content=info)
 
-@owner_only
+@dev_only
 async def cmd_reboot(bot, message):
     """
     Usage:
@@ -179,7 +206,7 @@ async def cmd_reboot(bot, message):
     await message.channel.send(content="Restarting!")
     await bot.restartBot()
 
-@owner_only
+@dev_only
 @available_everywhere
 async def cmd_except(bot, message):
     """
@@ -203,7 +230,7 @@ async def cmd_echo(bot, message):
 
     return Reply(content=echo)
 
-@owner_only
+@dev_only
 @available_everywhere
 async def cmd_logs(bot, message):
     """
@@ -241,7 +268,7 @@ async def cmd_logs(bot, message):
         content = content % (lineCount, logs)
         return Reply(content=content)
 
-@owner_only
+@admin_only
 async def cmd_config(bot, message):
     """
     Usage:
@@ -860,7 +887,7 @@ async def cmd_queue(bot, message):
     
     return Reply(embed=embed)
 
-@owner_only
+@admin_only
 async def cmd_summon(bot, message):
     """
     Usage:
