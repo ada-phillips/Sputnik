@@ -58,7 +58,7 @@ def dev_only(func):
     async def wrapper(bot, message, *args, **kwargs):
         appInfo = await bot.application_info()
 
-        if  message.author == appInfo.owner or message.author in appInfo.team.members:
+        if  message.author == appInfo.owner or (appInfo.team is not None and message.author in appInfo.team.members):
             return await func(bot, message, *args, **kwargs)
         else:
             return Reply(content="Only members of the dev team can use this command")
@@ -72,7 +72,7 @@ def admin_only(func):
     async def wrapper(bot, message, *args, **kwargs):
         appInfo = await bot.application_info()
 
-        if message.channel.permissions_for(message.author).administrator or message.author == appInfo.owner or message.author in appInfo.team.members:
+        if message.channel.permissions_for(message.author).administrator or message.author == appInfo.owner or (appInfo.team is not None and message.author in appInfo.team.members):
             return await func(bot, message, *args, **kwargs)
         else:
             return Reply(content="Only server admins can use this command")
