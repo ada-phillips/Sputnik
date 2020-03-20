@@ -34,6 +34,22 @@ class IncorrectUsageError(ValueError):
     pass
 
 ##################################################################
+# Permissions Utilities
+##################################################################
+
+def is_owner(bot, message):
+    appInfo = await bot.application_info()
+    return message.author == (appInfo.team.owner, appInfo.owner)[appInfo.team is None]
+
+def is_dev(bot, message):
+    appInfo = await bot.application_info()
+    return (appInfo.team is not None and message.author in appInfo.team.members) or is_owner(bot, message)
+
+def is_admin(bot, message):
+    return  message.channel.permissions_for(message.author).administrator or is_dev(bot, message)
+
+
+##################################################################
 # Command Wrappers
 ##################################################################
 
@@ -44,7 +60,7 @@ def owner_only(func):
     async def wrapper(bot, message, *args, **kwargs):
         appInfo = await bot.application_info()
 
-        if message.author == (appInfo.team.owner, appInfo.owner)[appInfo.team is None]:
+        if is_owner(bot, message):
             return await func(bot, message, *args, **kwargs)
         else:
             return Reply(content="Only the owner can use this command")
@@ -58,7 +74,7 @@ def dev_only(func):
     async def wrapper(bot, message, *args, **kwargs):
         appInfo = await bot.application_info()
 
-        if  message.author == appInfo.owner or (appInfo.team is not None and message.author in appInfo.team.members):
+        if is_dev(bot, message):
             return await func(bot, message, *args, **kwargs)
         else:
             return Reply(content="Only members of the dev team can use this command")
@@ -72,7 +88,7 @@ def admin_only(func):
     async def wrapper(bot, message, *args, **kwargs):
         appInfo = await bot.application_info()
 
-        if message.channel.permissions_for(message.author).administrator or message.author == appInfo.owner or (appInfo.team is not None and message.author in appInfo.team.members):
+        if is_admin(bot, message):
             return await func(bot, message, *args, **kwargs)
         else:
             return Reply(content="Only server admins can use this command")
@@ -549,33 +565,36 @@ async def cmd_hug(bot, message):
     """
     hug = [discord.File(open("virtual_hug.gif", 'rb')), ]
 
-    content=""
+    embed_content=""
+    content=None
     if message.mentions:
         for user in message.mentions:
-            content += ":heart: %s :heart:\n" % user.mention 
+            embed_content += ":heart: %s :heart:\n" % user.mention 
 
     elif message.role_mentions:
         for role in message.role_mentions:
             if role.mentionable:
-                content += ":heart: %s :heart:\n" % role.mention
+                embed_content += ":heart: %s :heart:\n" % role.mention
             else: 
                 content = "The rules say I'm not allowed to hug %s :cry:\n" % role.mention
                 hug = None
                 break
     elif message.mention_everyone:
-        if str(message.author.id) == bot.config.get(0, "Permissions","OwnerID"):
-            content = ":heart: @everyone :heart:"
+        if is_admin(bot, message):
+            embed_content = ":heart: @everyone :heart:"
         else:
             content = "Sorry, but I don't think that's a good idea..."
             hug = None
     else:
-        content = ":heart: %s :heart:" % message.author.mention
-
+        embed_content = ":heart: %s :heart:" % message.author.mention
     
-    embed = discord.Embed(title=discord.Embed.Empty, description=content)
-    embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
+    if content:
+        embed = None
+    else: 
+        embed = discord.Embed(title=discord.Embed.Empty, description=embed_content)
+        embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
 
-    return Reply(embed=embed, files=hug)
+    return Reply(content=content, embed=embed, files=hug)
 
 @owner_only
 @available_everywhere
@@ -590,27 +609,31 @@ async def cmd_guillotine(bot, message):
 
     guillotine = [discord.File(open("guillotine.gif", 'rb')), ]
 
-    content=""
+    embed_content=""
+    content=None
     if message.mentions:
         for user in message.mentions:
-            content += ":skull_crossbones: %s :skull_crossbones:\n" % user.mention 
+            embed_content += ":skull_crossbones: %s :skull_crossbones:\n" % user.mention 
 
     elif message.role_mentions:
         for role in message.role_mentions:
             if role.mentionable:
-                content += ":skull_crossbones: %s :skull_crossbones:\n" % role.mention
+                embed_content += ":skull_crossbones: %s :skull_crossbones:\n" % role.mention
             else: 
                 content = "The rules say I'm not allowed to execute %s :cry:\n" % role.mention
                 guillotine = None
                 break
 
     else:
-        content = ":skull_crossbones: %s :skull_crossbones:" % message.author.mention
+        embed_content = ":skull_crossbones: %s :skull_crossbones:" % message.author.mention
     
-    embed = discord.Embed(title=discord.Embed.Empty, description=content)
-    embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
+    if content:
+        embed = None
+    else: 
+        embed = discord.Embed(title=discord.Embed.Empty, description=embed_content)
+        embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
 
-    return Reply(embed=embed, files=guillotine)
+    return Reply(content=content, embed=embed, files=guillotine)
 
 # Music Commands
 #################
