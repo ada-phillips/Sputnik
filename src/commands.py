@@ -170,7 +170,7 @@ async def cmd_eval(bot, msg):
     Runs code on the fly and introduces massive security concerns
     """
     code = msg.content.split(" ", 1)[1]
-    result = eval(code, globals(), locals())
+    result = await eval(code, globals(), locals())
 
     return Reply(content="Output={}".format(result))
 
