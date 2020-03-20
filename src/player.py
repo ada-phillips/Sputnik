@@ -16,6 +16,7 @@ ydl_opts = {
     #'postprocessors': [{
     #    'key': 'FFmpegExtractAudio',
     #}],
+    'source_address': '0.0.0.0',
     'restrictfilenames': True,
     'noplaylist': True,
     'default_search': 'auto',
