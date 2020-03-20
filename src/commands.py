@@ -547,7 +547,7 @@ async def cmd_hug(bot, message):
 
     Sends a virtual hug to the user, or to the specified users or roles.
     """
-    hug = discord.File(open("virtual_hug.gif", 'rb'))
+    hug = [discord.File(open("virtual_hug.gif", 'rb')), ]
 
     content=""
     if message.mentions:
@@ -575,7 +575,7 @@ async def cmd_hug(bot, message):
     embed = discord.Embed(title=discord.Embed.Empty, description=content)
     embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
 
-    return Reply(embed=embed, files=[hug,])
+    return Reply(embed=embed, files=hug)
 
 @owner_only
 @available_everywhere
@@ -588,7 +588,7 @@ async def cmd_guillotine(bot, message):
     """
     await message.channel.trigger_typing()
 
-    guillotine = discord.File(open("guillotine.gif", 'rb'))
+    guillotine = [discord.File(open("guillotine.gif", 'rb')), ]
 
     content=""
     if message.mentions:
@@ -601,7 +601,7 @@ async def cmd_guillotine(bot, message):
                 content += ":skull_crossbones: %s :skull_crossbones:\n" % role.mention
             else: 
                 content = "The rules say I'm not allowed to execute %s :cry:\n" % role.mention
-                hug = None
+                guillotine = None
                 break
 
     else:
@@ -610,7 +610,7 @@ async def cmd_guillotine(bot, message):
     embed = discord.Embed(title=discord.Embed.Empty, description=content)
     embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
 
-    return Reply(embed=embed, files=[guillotine,])
+    return Reply(embed=embed, files=guillotine)
 
 # Music Commands
 #################
