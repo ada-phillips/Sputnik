@@ -37,15 +37,15 @@ class IncorrectUsageError(ValueError):
 # Permissions Utilities
 ##################################################################
 
-def is_owner(bot, message):
+async def is_owner(bot, message):
     appInfo = await bot.application_info()
     return message.author == (appInfo.team.owner, appInfo.owner)[appInfo.team is None]
 
-def is_dev(bot, message):
+async def is_dev(bot, message):
     appInfo = await bot.application_info()
     return (appInfo.team is not None and message.author in appInfo.team.members) or is_owner(bot, message)
 
-def is_admin(bot, message):
+async def is_admin(bot, message):
     return  message.channel.permissions_for(message.author).administrator or is_dev(bot, message)
 
 
@@ -58,9 +58,9 @@ def owner_only(func):
     
     @wraps(func)
     async def wrapper(bot, message, *args, **kwargs):
-        appInfo = await bot.application_info()
+        allowed = await is_owner(bot, message)
 
-        if is_owner(bot, message):
+        if allowed:
             return await func(bot, message, *args, **kwargs)
         else:
             return Reply(content="Only the owner can use this command")
@@ -72,9 +72,9 @@ def dev_only(func):
     
     @wraps(func)
     async def wrapper(bot, message, *args, **kwargs):
-        appInfo = await bot.application_info()
+        allowed = await is_dev(bot, message)
 
-        if is_dev(bot, message):
+        if allowed:
             return await func(bot, message, *args, **kwargs)
         else:
             return Reply(content="Only members of the dev team can use this command")
@@ -86,9 +86,9 @@ def admin_only(func):
     
     @wraps(func)
     async def wrapper(bot, message, *args, **kwargs):
-        appInfo = await bot.application_info()
+        allowed = await is_admin(bot, message)
 
-        if is_admin(bot, message):
+        if allowed:
             return await func(bot, message, *args, **kwargs)
         else:
             return Reply(content="Only server admins can use this command")
