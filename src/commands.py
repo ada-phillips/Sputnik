@@ -43,6 +43,7 @@ async def is_owner(bot, message):
 
 async def is_dev(bot, message):
     appInfo = await bot.application_info()
+
     return (message.author in appInfo.team.members, False)[appInfo.team is None] or is_owner(bot, message)
 
 async def is_admin(bot, message):
@@ -158,6 +159,20 @@ async def cmd_reloadcmd(bot, msg):
     bot.reloadCommandSet()
 
     return Reply(content="I've reloaded the command set.")
+
+@owner_only
+@available_everywhere
+async def cmd_reloadcmd(bot, msg):
+    """
+    Usage:
+        {command_prefix}eval
+
+    Runs code on the fly and introduces massive security concerns
+    """
+    code = message.content.split(" ", 1)[1]
+    result = eval(code, globals(), locals())
+
+    return Reply(content="Output={}".format(result))
 
 @owner_only
 @available_everywhere
