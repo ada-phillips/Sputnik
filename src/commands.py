@@ -162,7 +162,7 @@ async def cmd_reloadcmd(bot, msg):
 
 @owner_only
 @available_everywhere
-async def cmd_reloadcmd(bot, msg):
+async def cmd_eval(bot, msg):
     """
     Usage:
         {command_prefix}eval
