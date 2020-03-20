@@ -43,7 +43,7 @@ async def is_owner(bot, message):
 
 async def is_dev(bot, message):
     appInfo = await bot.application_info()
-    return (appInfo.team is not None and message.author in appInfo.team.members) or is_owner(bot, message)
+    return (message.author in appInfo.team.members, False)[appInfo.team is None] or is_owner(bot, message)
 
 async def is_admin(bot, message):
     return  message.channel.permissions_for(message.author).administrator or is_dev(bot, message)
