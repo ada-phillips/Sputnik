@@ -109,7 +109,7 @@ class Bot(discord.Client):
         self.config.server_setup([guild,])
     
     async def on_error(event, *args, **kwargs):
-        log.error(traceback.format_exception(*sys.exc_info()))
+        log.exception("Exception in bot handler")
 
     async def on_message(self, message):
         await self.wait_until_ready()
@@ -144,7 +144,7 @@ class Bot(discord.Client):
             for reply in replies:
                 await message.channel.send(content=reply.content, files=reply.files, embed=reply.embed)
         except commands.IncorrectUsageError as e:
-            log.error(repr(e))
+            log.exception("Incorrect Usage of %s" % command)
             await message.channel.send(
                 content="Incorrect usage of %s:\n```%s```" % (
                     command, 

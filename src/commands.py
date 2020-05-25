@@ -43,7 +43,6 @@ async def is_owner(bot, message):
 
 async def is_dev(bot, message):
     appInfo = await bot.application_info()
-
     return (message.author in appInfo.team.members, False)[appInfo.team is None] or (await is_owner(bot, message))
 
 async def is_admin(bot, message):
@@ -408,8 +407,6 @@ async def cmd_spoiler(bot, message):
         embed.set_footer(text="Please delete the original message.")
 
     return Reply(embed=embed, files=images)
-    
-
 
 async def cmd_help(bot, message):
     """
@@ -490,6 +487,8 @@ async def cmd_roll(self, message):
         elif argus.isdigit():
             out = "("+argus+") = "+argus
             total = int(argus)
+        else: 
+            raise IncorrectUsageError
         return out, total
 
     try:
@@ -541,6 +540,34 @@ async def cmd_suggest(bot, message):
 
     return Reply(content="Thanks for the suggestion!")
 
+async def cmd_quote(bot, msg):
+    """
+    Usage:
+        {command_prefix}quote [@user|message_id]
+
+    Used to capture a message as an embed, preserving it for future generations.
+    Quotes either the most recent message in the channel, the most recent message 
+    from the given user in the channel, or the message with the given ID.
+
+    Only intended for text in messages, will not work for images.
+    """
+
+    if msg.mentions:
+        quoteMessage = await msg.channel.history(before=msg).get(author=msg.mentions[0])
+    else:
+        try:
+            quoteId = int(msg.content.split(" ", 1)[1])
+            try:
+                quoteMessage = await msg.channel.fetch_message(quoteId)
+            except discord.NotFound:
+                return Reply(content="No message with that ID found in this channel.")
+        except IndexError:
+            quoteMessage = await msg.channel.history(limit=1, before=msg).next()
+    
+    quoteEmbed = discord.Embed(title=discord.Embed.Empty, description=quoteMessage.content)
+    quoteEmbed.set_author(name=quoteMessage.author.display_name, icon_url=quoteMessage.author.avatar_url)
+    return Reply(embed=quoteEmbed)
+
 # Fun Commands
 ###############
 
@@ -556,6 +583,20 @@ async def cmd_sayhi(bot, msg):
     catchPhrases = ["fuck the police", "never cross a picket line", "don't be a scab", "snitches get stiches", "be gay, do crimes", "throw a brick"]
 
     return Reply(content=random.choice(catchPhrases))
+
+@available_everywhere
+async def cmd_bubbles(bot, msg):
+    """
+    Usage:
+        {command_prefix}bubbles
+
+    Sputnik will give you a sheet of bubble wrap to play with.
+    """
+    bubble = "||pop||"
+    return Reply(
+        content="Hey, I found some bubble wrap!\n"
+        +bubble*200
+        )
 
 async def cmd_hug(bot, message):
     """
