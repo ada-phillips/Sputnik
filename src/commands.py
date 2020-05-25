@@ -540,6 +540,7 @@ async def cmd_suggest(bot, message):
 
     return Reply(content="Thanks for the suggestion!")
 
+@available_everywhere
 async def cmd_quote(bot, msg):
     """
     Usage:
