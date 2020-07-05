@@ -32,7 +32,7 @@ class Bot(discord.Client):
     My name's Sputnik. I'm a bot!
     
     As a bot, I don't really have a gender, or even any sentient thought, so for pronouns I prefer to just stick with 'it' and 'its'.
-    I recently moved across the United States, from a server in Ohio to one in South Carolina, but the internet is what I consider my true home.
+    My avatar was done by [@autem_lux](https://www.instagram.com/autem_lux/)!
     
     I'm mostly here to play music and help you roll dice, but my functionality is slowly expanding; Just recently I learned to read, and can help you transcribe images!
     If there's a feature you'd like to see, make sure to let Ada know, or use the `{command_prefix}suggest` command

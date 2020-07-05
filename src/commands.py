@@ -544,7 +544,7 @@ async def cmd_suggest(bot, message):
 async def cmd_quote(bot, msg):
     """
     Usage:
-        {command_prefix}quote [@user|message_id]
+        {command_prefix}quote [@user|message_id [channel_id]]
 
     Used to capture a message as an embed, preserving it for future generations.
     Quotes either the most recent message in the channel, the most recent message 
@@ -594,10 +594,7 @@ async def cmd_bubbles(bot, msg):
     Sputnik will give you a sheet of bubble wrap to play with.
     """
     bubble = "||pop||"
-    return Reply(
-        content="Hey, I found some bubble wrap!\n"
-        +bubble*200
-        )
+    return Reply(content="Hey, I found some bubble wrap!\n"+bubble*200)
 
 async def cmd_hug(bot, message):
     """
