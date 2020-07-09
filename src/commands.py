@@ -748,7 +748,7 @@ async def cmd_pause(bot, message):
     Pauses playback of the current song.
     """
     bot.players[message.guild.id].pause()
-    return Reply(content="Pausing %s" % bot.players[message.guild.id].now_playing['title'])
+    return Reply(content="Pausing `%s`" % bot.players[message.guild.id].now_playing['title'])
 
 @needs_voice
 @needs_listening
@@ -760,7 +760,7 @@ async def cmd_resume(bot, message):
     Resumes playback of a paused song.
     """
     bot.players[message.guild.id].resume()
-    return Reply(content="Resuming %s" % bot.players[message.guild.id].now_playing['title'])
+    return Reply(content="Resuming `%s`" % bot.players[message.guild.id].now_playing['title'])
 
 @needs_voice
 async def cmd_nowplaying(bot, message):
