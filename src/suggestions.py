@@ -15,6 +15,15 @@ class SuggestionList():
             for card in column.list_cards():
                 out.append(card)
         return out
+    
+    def get_suggestion_categories(self):
+        out = {}
+        for column in self.board.list_lists():
+            col_out=[]
+            for card in column.list_cards():
+                col_out.append(card)
+            out[column.name]=col_out
+        return out
 
     def add_suggestion(self, title, description, author):
         card = self.new_card_list.add_card(title, desc=description)

@@ -506,14 +506,27 @@ async def cmd_suggestions(bot, message):
 
     Lists previous suggestions, as well as their authors.
     """
+    
+    replies = []
 
-    embed = discord.Embed(title="**Suggestions**", description="A full view of all suggestions can be found on the [Sputnik Development Trello Board](https://trello.com/b/59hNomms/sputnik-development)\n\n")
-    embed.set_footer(text="Have any to add? Try the {}suggest command!".format(bot.config.get((message.guild.id if message.guild else "default"), "Server", "CommandPrefix")))
+    title_embed = discord.Embed(title="**Suggestion List**", description="A full view of all suggestions can be found on the [Sputnik Development Trello Board](https://trello.com/b/59hNomms/sputnik-development)\n\n")
+    title_embed.set_footer(text="Have any to add? Try the {}suggest command!".format(bot.config.get((message.guild.id if message.guild else "default"), "Server", "CommandPrefix")))
+    replies.append(Reply(embed=title_embed))
 
-    for card in bot.suggestions.get_suggestions():
-        embed.add_field(name=card.name, value="Suggested {} by {}\u2003\u2003\u2003\u2003Status: {}\nDescription:\n{}\n\u200b".format(card.get_custom_field_by_name("Suggested On").value[:10], card.get_custom_field_by_name("Suggested By").value, card.get_list().name, card.description), inline=True)
+    cards = bot.suggestions.get_suggestion_categories()
 
-    return Reply(embed=embed)
+    for col in cards.keys():
+        embed = discord.Embed(title=f"{col}", description=discord.Embed.Empty)
+        for card in cards[col]:
+            embed.add_field(name=card.name, inline=False, value="Suggested {} by {}\nDescription:\n{}\n\u200b".format(card.get_custom_field_by_name("Suggested On").value[:10], card.get_custom_field_by_name("Suggested By").value, card.description))
+        if len(cards[col])==0:
+            embed.add_field(name="No tasks currently in this column!", inline=False, value="\u200b")
+        replies.append(Reply(embed=embed))
+
+#    for card in bot.suggestions.get_suggestions():
+#        embed.add_field(name=card.name, value="Suggested {} by {}\u2003\u2003\u2003\u2003Status: {}\nDescription:\n{}\n\u200b".format(card.get_custom_field_by_name("Suggested On").value[:10], card.get_custom_field_by_name("Suggested By").value, card.get_list().name, card.description), inline=True)
+
+    return replies
 
 async def cmd_suggest(bot, message): 
     """
