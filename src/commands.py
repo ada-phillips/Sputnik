@@ -734,9 +734,9 @@ async def cmd_play(bot, message):
     position = bot.players[message.guild.id].add(info)
 
     if position>0:
-        return Reply(content="Added {} to queue, in position {}".format(info['title'], position))
+        return Reply(content="Added `{}` to queue, in position {}".format(info['title'], position))
     else:
-        return Reply(content="{}, coming right up!".format(info['title']))
+        return Reply(content="`{}`, coming right up!".format(info['title']))
 
 @needs_voice
 @needs_listening
