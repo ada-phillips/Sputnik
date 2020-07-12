@@ -119,7 +119,7 @@ def needs_voice(func):
      
     @wraps(func)
     async def wrapper(bot, message, *args, **kwargs):
-        if(message.guild.id in bot.players):
+        if(message.guild.voice_client):
             reply = await func(bot, message, *args, **kwargs)
         else:
             reply = Reply(content="Sorry, this command can't be used when the I'm not in a voice channel")
