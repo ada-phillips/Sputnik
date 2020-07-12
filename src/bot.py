@@ -68,7 +68,6 @@ class Bot(discord.Client):
             self.suggestions = None
         self.config.server_setup(self.guilds)
         self.validate_channels()
-        await self.join_channels()
         
 
     def validate_channels(self):
@@ -86,30 +85,33 @@ class Bot(discord.Client):
             else:
                 log.info("Not bound to any channels on %s; listening to all.", guild.name)
             
-            if self.config.get(guild.id,"Server","AutoJoinChannel"):
-                missingChannels = self.config.get(guild.id,"Server","AutoJoinChannel") not in [str(voice.id) for voice in guild.voice_channels]
-                if missingChannels:
-                    log.warning("Unable to auto-join channel not present on %s:\n%s", guild.name, self.config.get(guild.id,"Server","AutoJoinChannel"))
-                    
-                    self.config.put(guild.id,"Server","AutoJoinChannel", "")
-            else:
-                log.info("Not auto-joining any channels on %s.", guild.name)
-    
-    async def join_channels(self):
-        for guild in self.guilds:
-            if self.config.get(guild.id,"Server","AutoJoinChannel"):
-                if guild.voice_client:
-                    await guild.voice_client.disconnect()
-                await guild.get_channel(int(self.config.get(guild.id,"Server","AutoJoinChannel"))).connect()
-                self.players[guild.id] = player.Player(self, guild.id)
-            else:   #nothing configd
-                continue
+            # set up a playlist object for every single 
+            self.players[guild.id] = player.Player(self, guild)
+
 
     async def on_guild_join(self, guild):
         self.config.server_setup([guild,])
     
-    async def on_error(event, *args, **kwargs):
+    async def on_error(self, event, *args, **kwargs):
         log.exception("Exception in bot handler")
+
+    async def on_voice_state_update(self, member, before, after):
+        guild = member.guild
+        auto_channel = guild.get_channel(int(self.config.get(guild.id,"Server","AutoJoinChannel")))
+
+        async def leave_channel():
+            if not [member for member in guild.voice_client.channel.members if not member.bot]:
+                log.info("Leaving empty voice channel on %s", guild)
+                self.players[guild.id].clear_playlist()
+                await guild.voice_client.disconnect()
+        
+        if guild.voice_client:
+            if not [member for member in guild.voice_client.channel.members if not member.bot]:
+                guild.voice_client.loop.call_later(int(self.config.get(guild.id, "Server", "LeaveEmptyAfter")), guild.voice_client.loop.create_task, leave_channel())
+        elif auto_channel:
+            if [member for member in auto_channel.members if not member.bot]:
+                log.info("Auto-joining occupied channel %s on %s", auto_channel, guild)
+                await auto_channel.connect()
 
     async def on_message(self, message):
         await self.wait_until_ready()

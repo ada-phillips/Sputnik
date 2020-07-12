@@ -27,23 +27,22 @@ ydl_opts = {
 downloader_loop = asyncio.new_event_loop()
 
 class Player():
-    def __init__(self, bot, guildID):
+    def __init__(self, bot, guild):
         self.bot = bot
         self.loop = bot.loop
-        self.guildID = guildID
+        self.guild = guild
 
-        self.volume = float(self.bot.config.get(self.guildID, "Server", "DefaultVolume"))
+        self.volume = float(self.bot.config.get(self.guild.id, "Server", "DefaultVolume"))
 
         #self.ytdl = youtube_dl.YoutubeDL(ydl_opts)
 
         self.playlist = list()
-        self.list_length = 0
 
         self.now_playing = None
-        log.info("Initialized player for %d", guildID)
+        log.info("Initialized player for %s", self.guild)
 
     def play(self, info):
-        log.info("Playing `%s`", info['title'])
+        log.info("Playing `%s` on %s", info['title'], self.guild)
         message = info['message']
         
         self.download(info)
@@ -52,7 +51,7 @@ class Player():
         info['start_time'] = self.loop.time()
         self.now_playing = info
 
-        self.bot.get_guild(self.guildID).voice_client.play(
+        self.guild.voice_client.play(
             self.apply_volume(discord.FFmpegPCMAudio(info['filelocation'])),
             after = self.after_playing
         )
@@ -66,32 +65,32 @@ class Player():
 
     #resume
     def resume(self):
-        if self.bot.get_guild(self.guildID).voice_client.is_paused():
-            log.info("Pausing playback")
-            self.bot.get_guild(self.guildID).voice_client.resume()
+        if self.guild.voice_client.is_paused():
+            log.info("Pausing playback on %s", self.guild)
+            self.guild.voice_client.resume()
             self.now_playing['start_time'] = self.now_playing['start_time'] + (self.loop.time() - self.now_playing['pause_time'])
 
     # Toggle pause
     def pause(self):
-        if self.bot.get_guild(self.guildID).voice_client.is_paused():
-            log.info("Resuming playback")
-            self.bot.get_guild(self.guildID).voice_client.resume()
+        if self.guild.voice_client.is_paused():
+            log.info("Resuming playback on %s", self.guild)
+            self.guild.voice_client.resume()
             self.now_playing['start_time'] = self.now_playing['start_time'] + (self.loop.time() - self.now_playing['pause_time'])
         else:
-            log.info("Pausing playback")
-            self.bot.get_guild(self.guildID).voice_client.pause()
+            log.info("Pausing playback on %s", self.guild)
+            self.guild.voice_client.pause()
             self.now_playing['pause_time'] = self.loop.time()
         
 
     def download(self, info):
-        log.info("Downloading `%s`", info['title'])
+        log.info("Downloading `%s` for %s", info['title'], self.guild)
         self.bot.ytdl.download([info['webpage_url'],])
     
     async def retrieve_info(self, song_url): 
         return await self.loop.run_in_executor(None, functools.partial(self.bot.ytdl.extract_info, song_url, download=False, process=True))
 
     def after_playing(self, error):
-        log.info("Finished playing `%s`", self.now_playing['title'])
+        log.info("Finished playing `%s` on %s", self.now_playing['title'], self.guild)
         os.remove(self.now_playing['filelocation'])
         self.now_playing = None
         if error:
@@ -101,26 +100,31 @@ class Player():
 
     
     def add(self, info):
-        log.info("Adding `%s` to playlist", info['title'])
+        log.info("Adding `%s` to playlist on %s", info['title'], self.guild)
         self.playlist.append(info)
 
-        if not self.bot.get_guild(self.guildID).voice_client.is_playing():
+        if not self.guild.voice_client.is_playing():
             self.play(self.playlist.pop(0))
 
         return len(self.playlist)
 
     def set_volume(self, volume):
-        log.info("Volume set to `%d`", volume)
+        log.info("Volume set to `%d` on %s", volume, self.guild)
         self.volume = volume
 
-        if (self.bot.get_guild(self.guildID).voice_client.is_playing()):
-            self.bot.get_guild(self.guildID).voice_client.source.volume = self.volume
+        if (self.guild.voice_client.is_playing()):
+            self.guild.voice_client.source.volume = self.volume
 
     def apply_volume(self, source):
         return discord.PCMVolumeTransformer(source, volume=self.volume)
 
     def shuffle(self):
         random.shuffle(self.playlist)
+
+    def clear_playlist(self):
+        log.info("Clearing playlist on %s", self.guild)
+        self.playlist = list()
+        self.guild.voice_client.stop()
 
     def skip(self, author, index=None):
         if (index is None):
@@ -130,7 +134,7 @@ class Player():
         
         if (entry['message'].author == author):
             if index is None:
-                self.bot.get_guild(self.guildID).voice_client.stop()
+                self.guild.voice_client.stop()
             else:
                 self.playlist.remove(entry)
             return True, 0
@@ -140,11 +144,11 @@ class Player():
 
             entry['skips'].add(author)
 
-            skip_required = min(int(self.bot.config.get(self.guildID, "Server", "SkipsRequired")), int(float(self.bot.config.get(self.guildID, "Server", "SkipRatio")) * (len(self.bot.get_guild(self.guildID).voice_client.channel.members)-1)))
+            skip_required = min(int(self.bot.config.get(self.guildID, "Server", "SkipsRequired")), int(float(self.bot.config.get(self.guildID, "Server", "SkipRatio")) * (len(self.guild.voice_client.channel.members)-1)))
             if len(entry['skips']) >= skip_required:
-                log.info("Skipping `%s`", entry['title'])
+                log.info("Skipping `%s` on %s", entry['title'], self.guild)
                 if index is None:
-                    self.bot.get_guild(self.guildID).voice_client.stop()
+                    self.guild.voice_client.stop()
                 else:
                     self.playlist.remove(entry)
                 return True, 0
