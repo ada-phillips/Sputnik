@@ -983,6 +983,6 @@ async def cmd_summon(bot, message):
     if message.guild.id in bot.players:
         bot.players[message.guild.id].playlist = list()
     else:
-        bot.players[message.guild.id] = player.Player(bot, message.guild.id)
+        bot.players[message.guild.id] = player.Player(bot, message.guild)
     
     return Reply(content="I have been summoned!")

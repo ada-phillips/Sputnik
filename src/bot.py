@@ -91,6 +91,7 @@ class Bot(discord.Client):
 
     async def on_guild_join(self, guild):
         self.config.server_setup([guild,])
+        self.players[guild.id] = player.Player(self, guild)
     
     async def on_error(self, event, *args, **kwargs):
         log.exception("Exception in bot handler")
