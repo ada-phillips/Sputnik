@@ -44,6 +44,7 @@ class Bot(discord.Client):
         self.test = test
         self.config = config
         self.players={}
+        self.message_pipes={}
 
         self.ytdl = youtube_dl.YoutubeDL(player.ydl_opts)
 
@@ -139,6 +140,7 @@ class Bot(discord.Client):
             return
 
         try:
+            log.info(f"Running {command} on {message.guild if message.guild else ''}:{message.channel}")
             async with message.channel.typing():
                 replies = await handler(self, message)
             
@@ -155,10 +157,11 @@ class Bot(discord.Client):
                     )
                 )
         except NotImplementedError as e:
+            log.exception(f"Unimplemented command {command} used in {message.guild if message.guild else ''}:{message.channel}")
             await message.channel.send(content="I'm sorry, that command hasn't been written yet :sob:") 
         except Exception as e:
+            log.exception(f"Exception on {command} in {message.guild if message.guild else ''}:{message.channel}")
             await message.channel.send(content="I'm sorry, something went wrong and I couldn't run that command properly. :sob:")
-            raise e
         
     def reloadCommandSet(self):
         log.warning("Reloading command set...")
@@ -172,6 +175,34 @@ class Bot(discord.Client):
         command = "python" if " " in sys.executable else sys.executable
         log.error("{} - {}".format(sys.executable, [command] + sys.argv))
         os.execv(sys.executable, [command] + sys.argv)
+
+    def attach_log_channel(self, channel):
+        if channel.id in self.message_pipes: return False
+        format = "%(asctime)s - %(levelname)s:%(name)s:%(message)s"
+        log_channel = logging.StreamHandler(self.MessagePipe(self.loop, channel))
+        log_channel.setFormatter(logging.Formatter(
+            fmt=format
+        ))
+        self.message_pipes[channel.id] = log_channel
+        logging.getLogger().addHandler(log_channel)
+        return True
+    
+    def detach_log_channel(self, channel):
+        if not channel.id in self.message_pipes: return False
+        logging.getLogger().removeHandler(self.message_pipes.pop(channel.id))
+        return True
+
+    class MessagePipe(io.TextIOBase):
+        def __init__(self, loop, channel):
+            self.channel = channel
+            self.loop = loop
+        def write(self, s):
+            if s.strip(): self.loop.create_task(self.channel.send(f'```{s}```'))
+            return len(s)
+        def writable(self):
+            return True
+        def readable(self):
+            return False
 
 #   Set logging up across all modules
 def logging_setup(level="DEBUG"):

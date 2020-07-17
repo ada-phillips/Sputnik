@@ -169,11 +169,25 @@ async def cmd_update(bot, msg):
     Pulls the latest updates from the Sputnik Github repository
     """
 
-    content = "Attempting to pull the most recent updates...\n```\u200b{}```"
+    pull = subprocess.run(
+        ["git","pull"], 
+        stdout=subprocess.PIPE, 
+        stderr=subprocess.STDOUT,
+        universal_newlines=True
+        )
+    log.info(pull.stdout)
+    pull_results = f"Attempting to pull the most recent updates...\n```{'Success' if pull.returncode==0 else 'Failed'}```"
 
-    pull = subprocess.check_output(["git","pull"]).decode("utf-8")+" "
+    pip = subprocess.run(
+        [sys.executable, "-m", "pip", "install", "-r", "requirements.txt", "--upgrade", "--force-reinstall", "--no-cache-dir"], 
+        stdout=subprocess.PIPE, 
+        stderr=subprocess.STDOUT,
+        universal_newlines=True
+        )
+    log.info(pip.stdout)
+    pip_results = f"Attempting to install the most recent dependencies...\n```{'Success' if pip.returncode==0 else 'Failed'}```"
 
-    return Reply(content=content.format(pull))
+    return Reply(content=pull_results+'\n'+pip_results)
 
 @admin_only
 @available_everywhere
@@ -283,6 +297,33 @@ async def cmd_logs(bot, message):
         
         content = content % (lineCount, logs)
         return Reply(content=content)
+
+@dev_only
+@available_everywhere
+async def cmd_attach(bot, message):
+    """
+    Usage:
+        {command_prefix}attach
+
+    Attached this text channel to the log, allowing the user to see real-time logging data
+    """
+    if not bot.attach_log_channel(message.channel):
+        return Reply(content="Log already attached to this channel")
+
+    return Reply(content="Attached log to this channel")
+
+@dev_only
+@available_everywhere
+async def cmd_detach(bot, message):
+    """
+    Usage:
+        {command_prefix}attach
+
+    Attached this text channel to the log, allowing the user to see real-time logging data
+    """
+    if not bot.detach_log_channel(message.channel):
+        return Reply(content="Log not attached to this channel")
+    return Reply(content="Detached log from this channel")
 
 @admin_only
 async def cmd_config(bot, message):
