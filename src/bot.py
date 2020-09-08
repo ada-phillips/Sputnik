@@ -46,6 +46,8 @@ class Bot(discord.Client):
         self.players={}
         self.message_pipes={}
 
+        self.run_commands = []
+
         self.ytdl = youtube_dl.YoutubeDL(player.ydl_opts)
 
         if test: log.warning("Loading in TEST MODE")

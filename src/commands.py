@@ -33,6 +33,37 @@ class Reply:
 class IncorrectUsageError(ValueError):
     pass
 
+class CommandNotExists(ValueError):
+    pass
+
+class Command:
+    def __init__(self, bot, message):
+        self.bot = bot
+        self.trigger_message = message
+        self.outcomes = [] # track the results (messages sent, songs queued, etc.,)
+        command = message.content.split(' ', 1)[0]
+        if command in globals():
+            self.handler = globals()['cmd_'+command]
+        else:
+            raise CommandNotExists
+
+    async def execute(self):
+        self.outcomes = self.handler(bot, self.trigger_message)
+        for outcome in self.outcomes: 
+            outcome.execute()
+
+    async def edit(self):
+        pass
+        # re-run command on edited message, undo all outcomes and replace with new outcomes
+
+    async def undo(self):
+        for outcome in self.outcomes:
+            outcome.undo()
+    ##TODO: Encapsulate possible `outcomes` as an object type, send replies from within this module and track them too, 
+    # Outcomes will have an `undoable` property that is *dynamic* per type (ie, queued song not undoable after playing)
+    # Track user, so !undo can be user specific. 
+
+
 ##################################################################
 # Permissions Utilities
 ##################################################################
@@ -259,6 +290,20 @@ async def cmd_echo(bot, message):
     echo = message.content.split(" ", 1)[1]
 
     return Reply(content=echo)
+
+@owner_only
+@available_everywhere
+async def cmd_test_outcome(bot, message):
+    """
+    Usage:
+        {command_prefix}echo message
+
+    Echoes a given message.
+    """
+    echo = message.content.split(" ", 1)[1]
+
+    reply = Reply(content=echo)
+    return outcomes.SetMessage(reply, message.channel)
 
 @dev_only
 @available_everywhere
