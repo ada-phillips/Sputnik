@@ -144,7 +144,7 @@ class Player():
 
             entry['skips'].add(author)
 
-            skip_required = min(int(self.bot.config.get(self.guildID, "Server", "SkipsRequired")), int(float(self.bot.config.get(self.guildID, "Server", "SkipRatio")) * (len(self.guild.voice_client.channel.members)-1)))
+            skip_required = min(int(self.bot.config.get(self.guild.id, "Server", "SkipsRequired")), int(float(self.bot.config.get(self.guild.id, "Server", "SkipRatio")) * (len(self.guild.voice_client.channel.members)-1)))
             if len(entry['skips']) >= skip_required:
                 log.info("Skipping `%s` on %s", entry['title'], self.guild)
                 if index is None:

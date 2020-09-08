@@ -22,6 +22,8 @@ from PIL import Image
 from config import Config
 import player
 
+log = logging.getLogger(__name__)
+
 message_builder = {'content':None, 'file':None, 'embed': None}
 
 class Reply:
