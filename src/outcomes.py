@@ -1,5 +1,7 @@
 import abc
 
+log = logging.getLogger(__name__)
+
 class Action(abc.ABC):
 
     @property
@@ -24,20 +26,25 @@ class Action(abc.ABC):
     async def replace(self, new_outcome):
         pass
 
-class SentMessage(Action):
+class SentMessages(Action):
     def __init__(self, replies, channel):
-        self.message = None
+        self.messages = []
         self.channel = channel
-        self.reply = reply
+        self.replies = replies
     
     async def execute(self):
-        self.message = await channel.send(content=reply.content, files=reply.files, embed=reply.embed)
+        for reply in replies:
+            self.messages.append(await channel.send(content=reply.content, files=reply.files, embed=reply.embed))
     
     async def undo(self):
-        await message.delete()
+        for message in messages:
+            await message.delete()
     
-    async def replace(self, new_reply):
-        await message.edit(content=new_reply.content, embed=new_reply.embed)
+    async def replace(self, new_replies):
+        if (messages.length<new_replies.length):
+
+        for message in messages:
+            await message.edit(content=new_reply.content, embed=new_reply.embed)
 
 class sendMessage(Action):
     send the message, and return SentMessage
