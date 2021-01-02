@@ -6,6 +6,7 @@ import os
 import asyncio
 import functools
 import random
+import math
 
 log = logging.getLogger(__name__)
 
@@ -125,35 +126,38 @@ class Player():
         log.info("Clearing playlist on %s", self.guild)
         self.playlist = list()
         self.guild.voice_client.stop()
+    
+    def skips_required(self):
+        skip_count = int(self.bot.config.get(self.guild.id, "Server", "SkipsRequired"))
+        skip_ratio = float(self.bot.config.get(self.guild.id, "Server", "SkipRatio"))
+        users = float(len(self.guild.voice_client.channel.members)-1)
+
+        return min(skip_count, math.ceil(skip_count*users))
 
     def skip(self, author, index=None):
         if (index is None):
-            entry = self.now_playing
+            if self.now_playing:
+                entry = self.now_playing
+            else:
+                return -1
         else:
             entry = self.playlist[index]
-        
-        if (entry['message'].author == author):
+
+        if 'skips' not in entry:
+            entry['skips'] = set()
+
+        entry['skips'].add(author)
+
+        req = skips_required()
+        if len(entry['skips']) >= req or (entry['message'].author == author):
+            log.info("Skipping `%s` on %s", entry['title'], self.guild)
             if index is None:
                 self.guild.voice_client.stop()
             else:
                 self.playlist.remove(entry)
-            return True, 0
+            return 0
         else:
-            if 'skips' not in entry:
-                entry['skips'] = set()
-
-            entry['skips'].add(author)
-
-            skip_required = min(int(self.bot.config.get(self.guild.id, "Server", "SkipsRequired")), int(float(self.bot.config.get(self.guild.id, "Server", "SkipRatio")) * (len(self.guild.voice_client.channel.members)-1)))
-            if len(entry['skips']) >= skip_required:
-                log.info("Skipping `%s` on %s", entry['title'], self.guild)
-                if index is None:
-                    self.guild.voice_client.stop()
-                else:
-                    self.playlist.remove(entry)
-                return True, 0
-            else:
-                return False, skip_required - len(entry['skips'])
+            return req - len(entry['skips'])
 
 
 

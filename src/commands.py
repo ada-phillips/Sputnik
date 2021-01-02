@@ -885,27 +885,26 @@ async def cmd_skip(bot, message):
     Adds a vote to skip either the current song, or a specified song in the queue. 
     """
     player = bot.players[message.guild.id]
-    if (player.now_playing):
-        try:
-            index = int(message.content.split(" ", 1)[1])
+    try:
+        index = int(message.content.split(" ", 1)[1])
 
-            try:    # Try getting the song at that index
-                entry = player.playlist[index-1]
-                skipped, needed = player.skip(message.author, index=index-1)
-                if (skipped):
-                    return Reply(content="Skipping {}!".format(entry['title']))
-                return Reply(content="Voted to skip {}. {} more votes needed.".format(entry['title'], needed))
+        try:    # Try getting the song at that index
+            entry = player.playlist[index-1]
+            needed = player.skip(message.author, index=index-1)
+            if (needed == 0):
+                return Reply(content="Skipping {}!".format(entry['title']))
+            return Reply(content="Voted to skip {}. {} more votes needed.".format(entry['title'], needed))
 
-            except IndexError:  #if there is no song there,
-                return Reply(content="Sorry, {} doesn't correspond to an entry in the queue.".format(index))
+        except IndexError:  #if there is no song there,
+            return Reply(content="Sorry, {} doesn't correspond to an entry in the queue.".format(index))
 
-        except IndexError:
-            skipped, needed = player.skip(message.author)
-            if (skipped):
-                return Reply(content="Skipping {}!".format(player.now_playing['title']))
-            return Reply(content="Voted to skip {}. {} more votes needed.".format(player.now_playing['title'], needed))
-    else:
-        return Reply(content="Nothing playing!")
+    except IndexError:
+        needed = player.skip(message.author)
+        if (needed == 0):
+            return Reply(content="Skipping {}!".format(player.now_playing['title']))
+        elif needed == -1:
+            return Reply(content="Nothing playing!")
+        return Reply(content="Voted to skip {}. {} more votes needed.".format(player.now_playing['title'], needed))
 
 @needs_voice
 @needs_listening
