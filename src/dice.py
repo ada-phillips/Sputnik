@@ -44,7 +44,7 @@ class DiceNode:
             self.string = str(self.sum)
         else: 
             sides = int(capture['dieSides'])
-            count = int(capture.get('dieCount')) or 1
+            count = int(capture.get('dieCount') or 1)
             # Roll the dice, recording their in-order indices, but sorting them in-place according to value
             results = {i:random.randint(1, sides) for i in range(count)}
             keys = [k for k, v in sorted(results.items(), key=lambda item: item[1])]
