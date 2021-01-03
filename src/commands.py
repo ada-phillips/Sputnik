@@ -21,6 +21,7 @@ from PIL import Image
 
 from config import Config
 import player
+import dice
 
 log = logging.getLogger(__name__)
 
@@ -491,55 +492,22 @@ async def cmd_help(bot, message):
 async def cmd_roll(self, message):
     """
     Usage:
-        {command_prefix}roll XdY[(+|-|*)Z] [message]
+        {command_prefix}roll [X]dY[(+|-|*)Z] [message]
 
-    Used to roll X dice with Y sides, and an optional modifier of Z. A message can also be specified,
-    and will be returned alongside the results.
+    Used to roll X (default 1) dice with Y sides, and an optional modifier of Z (which can be additional dice rolls). 
+    Multiple rolls can be specified as a comma separate list.
+    A message can also be specified, and will be returned alongside the results.
     """
 
-    expression = re.compile('((\d+)([dD])(\d+))(([+*-])((((\d+)([dD])(\d+)|\d+|)([+*-])*)*))?((([^\S\n])*(\w+))*)')
-
-    def quickmath(op, num1, num2):
-        if op is "+":
-            return num1+num2
-        elif op is "-":
-            return num1 - num2
-        elif op is "*":
-            return num1*num2
-
-    def dice(number, sides):
-        results = [0] * number
-        for i in range(number):
-            results[i] = random.randint(1,sides)
-        return results
-
-    def roll(argus):
-        parse = expression.match(argus)
-        total = 0
-
-        if parse:
-            rolls = dice(int(parse.group(2)), int(parse.group(4)))
-            total = sum(rolls)
-            out = parse.group(1)+" ("+", ".join(str(x) for x in rolls) + ") = " + str(total)
-            if parse.group(7):
-                nex = roll(parse.group(7))
-                total = quickmath(parse.group(6),total,nex[1])
-                out ="({0}) {1} ({2}) = {3}".format(out, parse.group(6), nex[0], total)
-            if parse.group(14):
-                out = out + " " + parse.group(14).strip()
-        elif argus.isdigit():
-            out = "("+argus+") = "+argus
-            total = int(argus)
-        else: 
-            raise IncorrectUsageError
-        return out, total
 
     try:
-        args = message.content.split(" ",1)[1]
+        string = message.content.split(" ",1)[1]
+        rolls = dice.DiceSet()
+        rolls.parseString(string)
+
+        return Reply(content=rolls.result())
     except IndexError:
         raise IncorrectUsageError
-    
-    return Reply(content=roll(args)[0])
 cmd_r = cmd_roll
 
 async def cmd_suggestions(bot, message):
