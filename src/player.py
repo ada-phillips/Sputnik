@@ -148,7 +148,7 @@ class Player():
 
         entry['skips'].add(author)
 
-        req = skips_required()
+        req = self.skips_required()
         if len(entry['skips']) >= req or (entry['message'].author == author):
             log.info("Skipping `%s` on %s", entry['title'], self.guild)
             if index is None:
