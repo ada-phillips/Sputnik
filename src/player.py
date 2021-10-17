@@ -100,12 +100,12 @@ class Player():
             self.loop.run_in_executor(None, self.play, self.playlist.pop(0)) #self.play(self.playlist.pop(0))
 
     
-    async def add(self, info):
+    def add(self, info):
         log.info("Adding `%s` to playlist on %s", info['title'], self.guild)
         self.playlist.append(info)
 
         if not self.guild.voice_client.is_playing():
-            await self.play(self.playlist.pop(0))
+            self.loop.create_task(self.play(self.playlist.pop(0)))
 
         return len(self.playlist)
 
