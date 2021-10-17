@@ -139,6 +139,9 @@ class Bot(discord.Client):
         if self.config.get((message.guild.id if message.guild else "default"),"Server","BindToChannels") and str(message.channel.id) not in self.config.get((message.guild.id if message.guild else "default"),"Server","BindToChannels") and not hasattr(handler, "is_available_everywhere"):
             return
 
+        self.loop.create_task(self.runCommand(command, handler, message))
+        
+    async def runCommand(self, command, handler, message):
         try:
             log.info(f"Running {command} on {message.guild if message.guild else ''}:{message.channel}")
             async with message.channel.typing():
@@ -162,7 +165,7 @@ class Bot(discord.Client):
         except Exception as e:
             log.exception(f"Exception on {command} in {message.guild if message.guild else ''}:{message.channel}")
             await message.channel.send(content="I'm sorry, something went wrong and I couldn't run that command properly. :sob:")
-        
+
     def reloadCommandSet(self):
         log.warning("Reloading command set...")
         importlib.reload(commands)
