@@ -378,6 +378,17 @@ async def cmd_config(bot, message):
 
 @available_everywhere
 @mention_invoker
+async def cmd_reminder(bot, msg):
+    """
+    Usage:
+        {command_prefix}reminder date time message
+    
+    Ask me to remind you about something on the specified date and time. 
+    I'll do my best to remember, but please don't use this for anything critical--it's possible something could go wrong, and I could forget.
+    """
+
+@available_everywhere
+@mention_invoker
 async def cmd_read(bot, msg):
     """
     Usage:
@@ -742,7 +753,7 @@ async def cmd_play(bot, message):
     
     info['message'] = message
 
-    position = bot.players[message.guild.id].add(info)
+    position = await bot.players[message.guild.id].add(info)
 
     if position>0:
         return Reply(content="Added `{}` to queue, in position {}".format(info['title'], position))

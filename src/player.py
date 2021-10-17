@@ -42,11 +42,11 @@ class Player():
         self.now_playing = None
         log.info("Initialized player for %s", self.guild)
 
-    def play(self, info):
+    async def play(self, info):
         log.info("Playing `%s` on %s", info['title'], self.guild)
         message = info['message']
         
-        self.download(info)
+        await self.download(info)
         info['filelocation'] = self.bot.ytdl.prepare_filename(info)
         info['message'] = message
         info['start_time'] = self.loop.time()
@@ -83,7 +83,7 @@ class Player():
             self.now_playing['pause_time'] = self.loop.time()
         
 
-    def download(self, info):
+    async def download(self, info):
         log.info("Downloading `%s` for %s", info['title'], self.guild)
         self.bot.ytdl.download([info['webpage_url'],])
     
@@ -97,15 +97,15 @@ class Player():
         if error:
             log.error(error)
         elif self.playlist:
-            self.play(self.playlist.pop(0))
+            self.loop.run_in_executor(None, self.play, self.playlist.pop(0)) #self.play(self.playlist.pop(0))
 
     
-    def add(self, info):
+    async def add(self, info):
         log.info("Adding `%s` to playlist on %s", info['title'], self.guild)
         self.playlist.append(info)
 
         if not self.guild.voice_client.is_playing():
-            self.play(self.playlist.pop(0))
+            await self.play(self.playlist.pop(0))
 
         return len(self.playlist)
 
