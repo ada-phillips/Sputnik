@@ -378,6 +378,17 @@ async def cmd_config(bot, message):
 
 @available_everywhere
 @mention_invoker
+async def cmd_reminder(bot, msg):
+    """
+    Usage:
+        {command_prefix}reminder date time message
+    
+    Ask me to remind you about something on the specified date and time. 
+    I'll do my best to remember, but please don't use this for anything critical--it's possible something could go wrong, and I could forget.
+    """
+
+@available_everywhere
+@mention_invoker
 async def cmd_read(bot, msg):
     """
     Usage:
@@ -726,13 +737,15 @@ async def cmd_play(bot, message):
         song_url = song_url.replace('/', '%2F')
     
 
+    server_player = bot.players[message.guild.id]
+
     #info = bot.ytdl.extract_info(song_url, download=False, process=True)
-    info = await bot.players[message.guild.id].retrieve_info(song_url)
+    info = await server_player.retrieve_info(song_url)
 
     while 'entries' in info:
         if len(info['entries'])>0:
             song_url = info['entries'][0]['webpage_url']
-            info = bot.ytdl.extract_info(song_url, download=False, process=True)
+            info = await server_player.retrieve_info(song_url)
         else:
             return Reply(content="Sorry, I didn't find any results.")
     
@@ -742,7 +755,7 @@ async def cmd_play(bot, message):
     
     info['message'] = message
 
-    position = bot.players[message.guild.id].add(info)
+    position = server_player.add(info)
 
     if position>0:
         return Reply(content="Added `{}` to queue, in position {}".format(info['title'], position))
@@ -788,7 +801,8 @@ async def cmd_nowplaying(bot, message):
         if message.guild.voice_client.is_paused():
             time_elapsed = now_playing['pause_time'] - now_playing['start_time']
         else:
-            time_elapsed = bot.players[message.guild.id].loop.time() - now_playing['start_time']
+            now = bot.loop.time()
+            time_elapsed = now - now_playing.get('start_time', now)
 
 
         embed = discord.Embed(title="**Now {}: \n{}**".format("Paused" if message.guild.voice_client.is_paused() else "Playing", now_playing['title']),
@@ -945,7 +959,8 @@ async def cmd_queue(bot, message):
         if message.guild.voice_client.is_paused():
             time_elapsed = info['pause_time'] - info['start_time']
         else:
-            time_elapsed = bot.players[message.guild.id].loop.time() - info['start_time']
+            now = bot.loop.time()
+            time_elapsed = now - info.get('start_time', now)
         
         embed.add_field(
             name="Currently {}: {}".format(

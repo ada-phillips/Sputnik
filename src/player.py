@@ -7,13 +7,14 @@ import asyncio
 import functools
 import random
 import math
+import threading
 
 log = logging.getLogger(__name__)
 
 LINK_REGEX = re.compile('((http(s)*:[/][/]|www.)([a-z]|[A-Z]|[0-9]|[/.]|[~])*)')
 
 ydl_opts = {
-    'format': 'bestaudio/best',
+    'format': 'worstaudio/worst',
     #'postprocessors': [{
     #    'key': 'FFmpegExtractAudio',
     #}],
@@ -32,6 +33,7 @@ class Player():
         self.bot = bot
         self.loop = bot.loop
         self.guild = guild
+        self.play_lock = threading.Lock()
 
         self.volume = float(self.bot.config.get(self.guild.id, "Server", "DefaultVolume"))
 
@@ -42,27 +44,28 @@ class Player():
         self.now_playing = None
         log.info("Initialized player for %s", self.guild)
 
-    def play(self, info):
-        log.info("Playing `%s` on %s", info['title'], self.guild)
-        message = info['message']
-        
-        self.download(info)
-        info['filelocation'] = self.bot.ytdl.prepare_filename(info)
-        info['message'] = message
-        info['start_time'] = self.loop.time()
-        self.now_playing = info
+    async def play(self, info):
+        with self.play_lock:
+            log.info("Playing `%s` on %s", info['title'], self.guild)
+            message = info['message']
+            
+            self.now_playing = info
+            await self.download(info)
+            info['filelocation'] = self.bot.ytdl.prepare_filename(info)
+            info['message'] = message
+            info['start_time'] = self.loop.time()
 
-        self.guild.voice_client.play(
-            self.apply_volume(discord.FFmpegPCMAudio(info['filelocation'])),
-            after = self.after_playing
-        )
+            self.guild.voice_client.play(
+                self.apply_volume(discord.FFmpegPCMAudio(info['filelocation'])),
+                after = self.after_playing
+            )
 
-        embed = discord.Embed(title="**Your song {} is now Playing!**".format(info['title']),
-            description="[{:02d}:{:02d}]\n{}\n".format(int(info['duration']/60), int(info['duration']%60), info['webpage_url']))
-        embed.set_footer(text="Add more songs with the {}play command!".format(self.bot.config.get((message.guild.id if message.guild else "default"), "Server", "CommandPrefix")))
-        embed.set_thumbnail(url=info['thumbnail'])
+            embed = discord.Embed(title="**Your song {} is now Playing!**".format(info['title']),
+                description="[{:02d}:{:02d}]\n{}\n".format(int(info['duration']/60), int(info['duration']%60), info['webpage_url']))
+            embed.set_footer(text="Add more songs with the {}play command!".format(self.bot.config.get((message.guild.id if message.guild else "default"), "Server", "CommandPrefix")))
+            embed.set_thumbnail(url=info['thumbnail'])
 
-        self.loop.create_task(message.channel.send(embed=embed, content=message.author.mention))
+            self.loop.create_task(message.channel.send(embed=embed, content=message.author.mention))
 
     #resume
     def resume(self):
@@ -83,9 +86,9 @@ class Player():
             self.now_playing['pause_time'] = self.loop.time()
         
 
-    def download(self, info):
+    async def download(self, info):
         log.info("Downloading `%s` for %s", info['title'], self.guild)
-        self.bot.ytdl.download([info['webpage_url'],])
+        await self.loop.run_in_executor(None, self.bot.ytdl.download, [info['webpage_url'],])
     
     async def retrieve_info(self, song_url): 
         return await self.loop.run_in_executor(None, functools.partial(self.bot.ytdl.extract_info, song_url, download=False, process=True))
@@ -97,15 +100,15 @@ class Player():
         if error:
             log.error(error)
         elif self.playlist:
-            self.play(self.playlist.pop(0))
+            self.loop.create_task(self.play(self.playlist.pop(0)))
 
     
     def add(self, info):
         log.info("Adding `%s` to playlist on %s", info['title'], self.guild)
         self.playlist.append(info)
 
-        if not self.guild.voice_client.is_playing():
-            self.play(self.playlist.pop(0))
+        if not self.guild.voice_client.is_playing() and not self.play_lock.locked():
+            self.loop.create_task(self.play(self.playlist.pop(0)))
 
         return len(self.playlist)
 
