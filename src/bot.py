@@ -15,7 +15,7 @@ from datetime import datetime
 import aiohttp
 import discord
 import colorlog
-import youtube_dl
+import yt_dlp
 
 import pytesseract
 from PIL import Image
@@ -46,11 +46,11 @@ class Bot(discord.Client):
         self.players={}
         self.message_pipes={}
 
-        self.ytdl = youtube_dl.YoutubeDL(player.ydl_opts)
+        self.ytdl = yt_dlp.YoutubeDL(player.ydl_opts)
 
         if test: log.warning("Loading in TEST MODE")
 
-        super().__init__()
+        super().__init__(intents=(discord.Intents.default() | discord.Intents(message_content=True)))
 
         log.info("Initialized Client")
 
@@ -131,6 +131,7 @@ class Bot(discord.Client):
         handler = getattr(commands, 'cmd_' + command, None)
 
         if not handler:
+            log.info(f"Ignoring unknown command: {command}")
             return
 
         if isinstance(message.channel, discord.DMChannel) and not handler.is_available_everywhere:

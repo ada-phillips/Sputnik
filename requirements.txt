@@ -1,7 +1,7 @@
 discord.py
 pytesseract
 pip
-youtube_dl
+yt_dlp
 colorlog
 cffi
 ffmpeg

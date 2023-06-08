@@ -37,8 +37,6 @@ class Player():
 
         self.volume = float(self.bot.config.get(self.guild.id, "Server", "DefaultVolume"))
 
-        #self.ytdl = youtube_dl.YoutubeDL(ydl_opts)
-
         self.playlist = list()
 
         self.now_playing = None

@@ -42,6 +42,7 @@ class Config:
             confFiles[1] = self.serverDir+str(server.id)+".ini"
             self.configDict[server.id] = configparser.ConfigParser(interpolation=None)
             self.configDict[server.id].read(confFiles, encoding='utf-8')
+            print({s:dict(self.configDict[server.id].items(s)) for s in self.configDict[server.id].sections()} )
 
     def get(self, server, section, key):
         try:

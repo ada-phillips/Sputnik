@@ -3,3 +3,4 @@
 *.webm
 __pycache__/
 config/global_test.ini
+.sputnik-env/
