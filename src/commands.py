@@ -209,7 +209,7 @@ async def cmd_introduce(bot, message):
             github=bot.config.get(0, "General", "GitHub")
         )
     )
-    embed.set_thumbnail(url=bot.user.avatar_url)
+    embed.set_thumbnail(url=bot.user.avatar.url)
     return Reply(embed=embed)
 
 async def cmd_id(bot, message):
